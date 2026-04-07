@@ -36,7 +36,32 @@ class GreedyFree(StructuredMatchingAlgorithm):
         ##############################################
         ### Début: Fonction héritée, à implémenter ###
         ##############################################
-        
+
+        edges = []
+        for i in range(n):
+            for j in range(m):
+                edges.append((X[i][j], i, j))
+        edges.sort(reverse=True)
+
+        used_i = set()
+        used_j = set()
+
+        for weight, i, j in edges:
+            if weight <= 0: break
+            if i in used_i or j in used_j: continue
+
+            is_crossing = False
+            for (a, b) in matching:
+                if (a < i and b > j) or (a > i and b < j):
+                    is_crossing = True
+                    break
+
+            if is_crossing: continue
+
+            matching.append((i, j))
+            used_i.add(i)
+            used_j.add(j)
+
         ##############################################
         ###  Fin : Fonction héritée, à implémenter ###
         ##############################################
@@ -75,16 +100,52 @@ class DynamicFree(StructuredMatchingAlgorithm):
         ##############################################
         ### Début: Fonction héritée, à implémenter ###
         ##############################################
-        
+
+        T = [[0.0 for _ in range(m + 1)] for _ in range(n + 1)]
+        choice = [[0 for _ in range(m + 1)] for _ in range(n + 1)]
+
+        for i in range(1, n + 1):
+            for j in range(1, m + 1):
+                up = T[i - 1][j]
+                left = T[i][j - 1]
+                diag = T[i - 1][j - 1] + max(0, X[i - 1][j - 1])
+
+                best = max(up, left, diag)
+                T[i][j] = best
+
+                if best == diag:
+                    choice[i][j] = 2
+                elif best == up:
+                    choice[i][j] = 0
+                else:
+                    choice[i][j] = 1
+
+        # backtracking
+        i = n
+        j = m
+
+        while i > 0 and j > 0:
+            if choice[i][j] == 2:
+                if X[i - 1][j - 1] > 0:
+                    matching.append((i - 1, j - 1))
+                i -= 1
+                j -= 1
+            elif choice[i][j] == 0:
+                i -= 1
+            else:
+                j -= 1
+
+        matching.reverse()
+
         ##############################################
         ###  Fin : Fonction héritée, à implémenter ###
         ##############################################
         # Les prochaines lignes en commentaires vous permettent de vérifier si votre algorithme respecte les contraintes.
         # À exécuter au choix.
-        #if not isValidMatching(matching, X):
-        #    print(matching)
-        #    print(self.pretty_name)
-        #    raise ValueError()
+        if not isValidMatching(matching, X):
+            print (matching)
+            print(self.pretty_name)
+            raise ValueError()
         score = 0.0
         for (i, j) in matching: score = round_decimals(score + X[i][j])
         return score, matching
@@ -114,18 +175,46 @@ class GreedyB(StructuredMatchingAlgorithm):
         ##############################################
         ### Début: Fonction héritée, à implémenter ###
         ##############################################
-        
+        edges = []
+        for i in range(n):
+            for j in range(m):
+                edges.append((X[i][j], i, j))
+        edges.sort(reverse=True)
+
+        used_i = set()
+        used_j = set()
+
+        for weight, i, j in edges:
+            if weight <= 0: break
+            if i in used_i or j in used_j: continue
+
+            is_crossing = False
+            for a, b in matching:
+                if (a < i and b > j) or (a > i and b < j):
+                    is_crossing = True
+                    break
+            if is_crossing: continue
+
+            if matching:
+                a, b = matching[-1]
+                if abs(i - a) > self.B or abs(j - b) > self.B: continue
+
+            matching.append((i, j))
+            used_i.add(i)
+            used_j.add(j)
+
         ##############################################
         ###  Fin : Fonction héritée, à implémenter ###
         ##############################################
         # Les prochaines lignes en commentaires vous permettent de vérifier si votre algorithme respecte les contraintes.
         # À exécuter au choix.
-        #if not isValidMatching(matching, X, B=self.B):
-        #    print(matching)
-        #    print(self.pretty_name)
-        #    raise ValueError()
+        # if not isValidMatching(matching, X, B=self.B):
+        #     print(matching)
+        #     print(self.pretty_name)
+        #     raise ValueError()
         score = 0.0
         for (i, j) in matching: score = round_decimals(score + X[i][j])
+        # print(score, self.B, n*m)
         return score, matching
 
 class DynamicB(StructuredMatchingAlgorithm):
@@ -153,7 +242,7 @@ class DynamicB(StructuredMatchingAlgorithm):
         ##############################################
         ### Début: Fonction héritée, à implémenter ###
         ##############################################
-        
+
         ##############################################
         ###  Fin : Fonction héritée, à implémenter ###
         ##############################################
@@ -251,12 +340,16 @@ class DynamicTheta(StructuredMatchingAlgorithm):
         return score, matching
 
 if __name__ == '__main__':
+    import os
+    for q in ['Question1', 'Question21', 'Question22', 'Question31',
+              'Question32']:
+        os.makedirs(f'figures/{q}', exist_ok=True)
     ################################################################################################
     ### Début: Modifiez le code ici pour faire des tests ou générer les figures que vous désirez ###
     ################################################################################################
     Tests = False
     Question1 = False
-    Question21 = False
+    Question21 = True
     Question22 = False
     Question31 = False
     Question32 = False
@@ -273,7 +366,7 @@ if __name__ == '__main__':
         compare_algorithms(algorithms, identifier, n_grid=custom_n_grid, sample_sizes=custom_sample_sizes)
     if Question21:
         identifier = f'Question21'
-        yourBgrid = [5, 8, 13, 21] # Les valeurs de B que vous voudriez tester
+        yourBgrid = [1,5,8,13,21,50] # Les valeurs de B que vous voudriez tester
         algorithms, custom_sample_sizes, custom_n_grid = [], [], default_n_grid[:]
         for B in yourBgrid:
             algorithms.append(GreedyB(B=B))
