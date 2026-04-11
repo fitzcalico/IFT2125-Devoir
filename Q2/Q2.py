@@ -3,9 +3,10 @@ from setupQ2 import *
 #######################################################################
 ### DÉBUT: vous pouvez ajouter des constantes/fonctions/classes ici ###
 #######################################################################
-default_B = 5 # Votre valeur de B préférée
-default_R = 0.5 # Votre valeur de R préférée
-default_theta = 0.5 # Votre valeur de theta préférée
+default_B = 5  # Votre valeur de B préférée
+default_R = 0.5  # Votre valeur de R préférée
+default_theta = 0.5  # Votre valeur de theta préférée
+
 
 #######################################################################
 ###  FIN : vous pouvez ajouter des constantes/fonctions/classes ici ###
@@ -15,11 +16,11 @@ class GreedyFree(StructuredMatchingAlgorithm):
 
     def __init__(self, pretty_name='GreedyFree', R=None, B=None, theta=None):
         super().__init__(pretty_name, R, B, theta)
-    
+
     ####################################################
     ### DÉBUT: vous pouvez ajouter des fonctions ici ###
     ####################################################
-    
+
     ####################################################
     ###  FIN : vous pouvez ajouter des fonctions ici ###
     ####################################################
@@ -36,38 +37,39 @@ class GreedyFree(StructuredMatchingAlgorithm):
         ##############################################
         ### Début: Fonction héritée, à implémenter ###
         ##############################################
-
+        # Créer toutes les arêtes possibles, puis trier
         edges = []
         for i in range(n):
             for j in range(m):
                 edges.append((X[i][j], i, j))
         edges.sort(reverse=True)
 
-        used_i = set()
-        used_j = set()
+        used_i = []
+        used_j = []
 
         for weight, i, j in edges:
-            if weight <= 0: break
-            if i in used_i or j in used_j: continue
+            if weight <= 0: break  # arête poids négatif?
+            if i in used_i or j in used_j: continue  # arête déjà utilisée?
 
+            # croisement?
             is_crossing = False
             for (a, b) in matching:
                 if (a < i and b > j) or (a > i and b < j):
                     is_crossing = True
                     break
-
             if is_crossing: continue
 
+            # les tests passent, alors ajouter à C
             matching.append((i, j))
-            used_i.add(i)
-            used_j.add(j)
+            used_i.append(i)
+            used_j.append(j)
 
         ##############################################
         ###  Fin : Fonction héritée, à implémenter ###
         ##############################################
         # Les prochaines lignes en commentaires vous permettent de vérifier si votre algorithme respecte les contraintes.
         # À exécuter au choix.
-        #if not isValidMatching(matching, X):
+        # if not isValidMatching(matching, X):
         #    print(matching)
         #    print(self.pretty_name)
         #    raise ValueError()
@@ -75,15 +77,16 @@ class GreedyFree(StructuredMatchingAlgorithm):
         for (i, j) in matching: score = round_decimals(score + X[i][j])
         return score, matching
 
+
 class DynamicFree(StructuredMatchingAlgorithm):
 
     def __init__(self, pretty_name='DynamicFree', R=None, B=None, theta=None):
         super().__init__(pretty_name, R, B, theta)
-    
+
     ####################################################
     ### DÉBUT: vous pouvez ajouter des fonctions ici ###
     ####################################################
-    
+
     ####################################################
     ###  FIN : vous pouvez ajouter des fonctions ici ###
     ####################################################
@@ -101,8 +104,8 @@ class DynamicFree(StructuredMatchingAlgorithm):
         ### Début: Fonction héritée, à implémenter ###
         ##############################################
 
-        T = [[0.0 for _ in range(m + 1)] for _ in range(n + 1)]
-        choice = [[0 for _ in range(m + 1)] for _ in range(n + 1)]
+        T = [[0.0 for _ in range(m + 1)] for _ in range(n + 1)]  # tableau (n+1) x (m+1)
+        choice = [[0 for _ in range(m + 1)] for _ in range(n + 1)]  # liste des choix pour backtracking
 
         for i in range(1, n + 1):
             for j in range(1, m + 1):
@@ -143,22 +146,23 @@ class DynamicFree(StructuredMatchingAlgorithm):
         # Les prochaines lignes en commentaires vous permettent de vérifier si votre algorithme respecte les contraintes.
         # À exécuter au choix.
         if not isValidMatching(matching, X):
-            print (matching)
+            print(matching)
             print(self.pretty_name)
             raise ValueError()
         score = 0.0
         for (i, j) in matching: score = round_decimals(score + X[i][j])
         return score, matching
 
+
 class GreedyB(StructuredMatchingAlgorithm):
 
     def __init__(self, pretty_name='Greedy', R=None, B=default_B, theta=None):
         super().__init__(pretty_name, R, B, theta)
-    
+
     ####################################################
     ### DÉBUT: vous pouvez ajouter des fonctions ici ###
     ####################################################
-    
+
     ####################################################
     ###  FIN : vous pouvez ajouter des fonctions ici ###
     ####################################################
@@ -175,33 +179,37 @@ class GreedyB(StructuredMatchingAlgorithm):
         ##############################################
         ### Début: Fonction héritée, à implémenter ###
         ##############################################
+        # Créer toutes les arêtes possibles, puis trier
         edges = []
         for i in range(n):
             for j in range(m):
                 edges.append((X[i][j], i, j))
         edges.sort(reverse=True)
 
-        used_i = set()
-        used_j = set()
+        used_i = []
+        used_j = []
 
         for weight, i, j in edges:
-            if weight <= 0: break
-            if i in used_i or j in used_j: continue
+            if weight <= 0: break  # arête poids négatif?
+            if i in used_i or j in used_j: continue  # arête déjà utilisée?
 
+            # croisement?
             is_crossing = False
-            for a, b in matching:
+            for (a, b) in matching:
                 if (a < i and b > j) or (a > i and b < j):
                     is_crossing = True
                     break
             if is_crossing: continue
 
+            # condition (iv)
             if matching:
                 a, b = matching[-1]
-                if abs(i - a) > self.B or abs(j - b) > self.B: continue
+                if (i - a > self.B) or (j - b > self.B): continue
 
+            # les tests passent, alors ajouter à C
             matching.append((i, j))
-            used_i.add(i)
-            used_j.add(j)
+            used_i.append(i)
+            used_j.append(j)
 
         ##############################################
         ###  Fin : Fonction héritée, à implémenter ###
@@ -217,15 +225,16 @@ class GreedyB(StructuredMatchingAlgorithm):
         # print(score, self.B, n*m)
         return score, matching
 
+
 class DynamicB(StructuredMatchingAlgorithm):
 
     def __init__(self, pretty_name='Dynamic', R=None, B=default_B, theta=None):
         super().__init__(pretty_name, R, B, theta)
-    
+
     ####################################################
     ### DÉBUT: vous pouvez ajouter des fonctions ici ###
     ####################################################
-    
+
     ####################################################
     ###  FIN : vous pouvez ajouter des fonctions ici ###
     ####################################################
@@ -248,23 +257,24 @@ class DynamicB(StructuredMatchingAlgorithm):
         ##############################################
         # Les prochaines lignes en commentaires vous permettent de vérifier si votre algorithme respecte les contraintes.
         # À exécuter au choix.
-        #if not isValidMatching(matching, X, B=self.B):
+        # if not isValidMatching(matching, X, B=self.B):
         #    print(matching)
         #    print(self.pretty_name)
         #    raise ValueError()
         score = 0.0
         for (i, j) in matching: score = round_decimals(score + X[i][j])
         return score, matching
+
 
 class DynamicR(StructuredMatchingAlgorithm):
 
     def __init__(self, pretty_name='Dynamic', R=default_R, B=None, theta=None):
         super().__init__(pretty_name, R, B, theta)
-    
+
     ####################################################
     ### DÉBUT: vous pouvez ajouter des fonctions ici ###
     ####################################################
-    
+
     ####################################################
     ###  FIN : vous pouvez ajouter des fonctions ici ###
     ####################################################
@@ -276,37 +286,38 @@ class DynamicR(StructuredMatchingAlgorithm):
             score: (float) Sum of preference scores of edges in matching
             matching: (list of 2-tuples of ints) Matching computed to solve the problem instance
         """
-        (n, m) = tuple(X.shape)             #      -100 < X[i][j] < 100
+        (n, m) = tuple(X.shape)  # -100 < X[i][j] < 100
         K = round(self.R * min(n, m))
-        P = probabilistic_transformation(X) #         0 < P[i][j] < 1
-        Q = np.log(P)                       # -math.inf < Q[i][j] < 0
+        P = probabilistic_transformation(X)  # 0 < P[i][j] < 1
+        Q = np.log(P)  # -math.inf < Q[i][j] < 0
         matching = []
         ##############################################
         ### Début: Fonction héritée, à implémenter ###
         ##############################################
-        
+
         ##############################################
         ###  Fin : Fonction héritée, à implémenter ###
         ##############################################
         # Les prochaines lignes en commentaires vous permettent de vérifier si votre algorithme respecte les contraintes.
         # À exécuter au choix.
-        #if not isValidMatching(matching, X, K=K):
+        # if not isValidMatching(matching, X, K=K):
         #    print(matching)
         #    print(self.pretty_name)
         #    raise ValueError()
         score = 0.0
         for (i, j) in matching: score = round_decimals(score + X[i][j])
         return score, matching
+
 
 class DynamicTheta(StructuredMatchingAlgorithm):
 
     def __init__(self, pretty_name='Dynamic', R=None, B=None, theta=default_theta):
         super().__init__(pretty_name, R, B, theta)
-    
+
     ####################################################
     ### DÉBUT: vous pouvez ajouter des fonctions ici ###
     ####################################################
-    
+
     ####################################################
     ###  FIN : vous pouvez ajouter des fonctions ici ###
     ####################################################
@@ -318,20 +329,20 @@ class DynamicTheta(StructuredMatchingAlgorithm):
             score: (float) Sum of preference scores of edges in matching
             matching: (list of 2-tuples of ints) Matching computed to solve the problem instance
         """
-        (n, m) = tuple(X.shape)             #      -100 < X[i][j] < 100
-        P = probabilistic_transformation(X) #         0 < P[i][j] < 1
-        Q = np.log(P / self.theta)          # -math.inf < Q[i][j] < math.inf
+        (n, m) = tuple(X.shape)  # -100 < X[i][j] < 100
+        P = probabilistic_transformation(X)  # 0 < P[i][j] < 1
+        Q = np.log(P / self.theta)  # -math.inf < Q[i][j] < math.inf
         matching = []
         ##############################################
         ### Début: Fonction héritée, à implémenter ###
         ##############################################
-        
+
         ##############################################
         ###  Fin : Fonction héritée, à implémenter ###
         ##############################################
         # Les prochaines lignes en commentaires vous permettent de vérifier si votre algorithme respecte les contraintes.
         # À exécuter au choix.
-        #if not isValidMatching(matching, X, theta=self.theta):
+        # if not isValidMatching(matching, X, theta=self.theta):
         #    print(matching)
         #    print(self.pretty_name)
         #    raise ValueError()
@@ -339,8 +350,10 @@ class DynamicTheta(StructuredMatchingAlgorithm):
         for (i, j) in matching: score = round_decimals(score + X[i][j])
         return score, matching
 
+
 if __name__ == '__main__':
     import os
+
     for q in ['Question1', 'Question21', 'Question22', 'Question31',
               'Question32']:
         os.makedirs(f'figures/{q}', exist_ok=True)
@@ -348,7 +361,7 @@ if __name__ == '__main__':
     ### Début: Modifiez le code ici pour faire des tests ou générer les figures que vous désirez ###
     ################################################################################################
     Tests = False
-    Question1 = False
+    Question1 = True
     Question21 = True
     Question22 = False
     Question31 = False
@@ -366,7 +379,7 @@ if __name__ == '__main__':
         compare_algorithms(algorithms, identifier, n_grid=custom_n_grid, sample_sizes=custom_sample_sizes)
     if Question21:
         identifier = f'Question21'
-        yourBgrid = [1,5,8,13,21,50] # Les valeurs de B que vous voudriez tester
+        yourBgrid = [1, 5, 8, 13, 21, 50]  # Les valeurs de B que vous voudriez tester
         algorithms, custom_sample_sizes, custom_n_grid = [], [], default_n_grid[:]
         for B in yourBgrid:
             algorithms.append(GreedyB(B=B))
@@ -386,7 +399,7 @@ if __name__ == '__main__':
         compare_algorithms(algorithms, identifier, n_grid=custom_n_grid, sample_sizes=custom_sample_sizes)
     if Question31:
         identifier = f'Question31'
-        yourRgrid = [0.5, 0.65, 0.8] # Les valeurs de R que vous voudriez tester
+        yourRgrid = [0.5, 0.65, 0.8]  # Les valeurs de R que vous voudriez tester
         algorithms, custom_sample_sizes, custom_n_grid = [], [], default_n_grid
         algorithms.append(DynamicFree())
         custom_sample_sizes.append([s // 5 for s in default_sample_sizes[:-3]])
@@ -396,7 +409,7 @@ if __name__ == '__main__':
         compare_algorithms(algorithms, identifier, n_grid=custom_n_grid, sample_sizes=custom_sample_sizes)
     if Question32:
         identifier = f'Question32'
-        yourTgrid = [0.025, 0.25, 0.5, 0.75, 0.975] # Les valeurs de theta que vous voudriez tester
+        yourTgrid = [0.025, 0.25, 0.5, 0.75, 0.975]  # Les valeurs de theta que vous voudriez tester
         algorithms, custom_sample_sizes, custom_n_grid = [], [], default_n_grid
         algorithms.append(DynamicFree())
         custom_sample_sizes.append([s // 2 for s in default_sample_sizes[:]])
